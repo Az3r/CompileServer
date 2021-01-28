@@ -1,15 +1,15 @@
-const express = require("express");
+const express = require('express');
 
-const gcc = require("./gcc");
+const gcc = require('./gcc');
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
+router.get('/', (req, res) => {
   res.json({
-    message: "API - 👋🌎🌍🌏",
+    message: 'API - 👋🌎🌍🌏',
   });
 });
 
-router.use("/c", gcc);
+router.use('/c', gcc);
 
 module.exports = router;
