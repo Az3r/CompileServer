@@ -5,6 +5,7 @@ const gpp = require('./gpp');
 const dotnet = require('./dotnet');
 const javac = require('./javac');
 const javascript = require('./javascript');
+const python3 = require('./python3');
 
 const router = express.Router();
 
@@ -19,5 +20,6 @@ router.use('/cpp', gpp);
 router.use('/java', javac);
 router.use('/csharp', dotnet);
 router.use('/js', javascript);
+router.use('/py3', python3);
 
 module.exports = router;
