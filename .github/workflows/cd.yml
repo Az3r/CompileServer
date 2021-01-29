@@ -1,7 +1,7 @@
 name: deploy app to heroku using docker
 on:
   push:
-    tags:
+    branches:
       - v0.*
 
 jobs:
