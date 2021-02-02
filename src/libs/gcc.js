@@ -9,14 +9,18 @@ const { v4: uuid } = require('uuid');
 const name = 'gcc';
 
 async function compile(code) {
-  const iPath = path.join(process.env.PWD, 'runners', `${uuid()}.c`);
-  const oPath = iPath.replace('.c', '.out');
+  const folder = path.join(process.env.PWD, 'runners', uuid());
+  fs.promises.mkdir(folder, {
+    recursive: true,
+  });
+  const iPath = path.join(folder, 'app.c');
+  const oPath = path.join(folder, 'app.out');
 
   await fs.promises.writeFile(iPath, code);
   return shell.exec(`gcc ${iPath} -o ${oPath}`).then(() => oPath);
 }
 
-async function run({ filePath, input, expected }) {
+async function run(filePath, input, expected) {
   const cmd = `echo '${input}' | ${filePath}`;
   const { stdout } = await shell.exec(cmd);
   const passed = stdout === expected;
@@ -28,12 +32,8 @@ async function run({ filePath, input, expected }) {
   };
 }
 
-async function test({ code, input, expected }) {
-  const runnerDir = path.join(process.env.PWD, 'runners');
-  if (!fs.existsSync(runnerDir)) {
-    fs.mkdirSync(runnerDir);
-  }
-  return compile(code).then((filePath) => run({ filePath, input, expected }));
+async function test(code, input, expected) {
+  return compile(code).then((filePath) => run(filePath, input, expected));
 }
 
 async function version() {
