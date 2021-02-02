@@ -1,9 +1,8 @@
-// input
-// expected
-// compile command
-// execute command
 const gcc = require('./gcc').compiler;
+
+const javascript = require('./javascript').compiler;
 
 exports.compilers = {
   gcc,
+  javascript,
 };

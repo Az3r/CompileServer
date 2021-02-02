@@ -1,25 +1,49 @@
 const express = require('express');
 
-const gcc = require('./gcc');
-const gpp = require('./gpp');
-const dotnet = require('./dotnet');
-const javac = require('./javac');
-const javascript = require('./javascript');
-const python3 = require('./python3');
-
 const router = express.Router();
+
+const base64 = require('base-64');
+
+const { compilers } = require('../libs');
+
+const map = {
+  c: compilers.gcc,
+  js: compilers.javascript,
+};
 
 router.get('/', (req, res) => {
   res.status(200).json({
-    message: 'API - 👋🌎🌍🌏',
+    message: 'Welcome to my compile server - 👋🌎🌍🌏',
   });
 });
 
-router.use('/c', gcc);
-router.use('/cpp', gpp);
-router.use('/java', javac);
-router.use('/csharp', dotnet);
-router.use('/js', javascript);
-router.use('/py3', python3);
+router.get('/:compiler', async (req, res, next) => {
+  const name = req.params.compiler;
+  const lang = map[name];
+  if (lang) {
+    lang
+      .version()
+      .then((data) => res.status(200).json({ message: data }))
+      .catch((error) => {
+        res.status(500).json({ error });
+      });
+  } else next();
+});
+router.post('/:compiler', async (req, res, next) => {
+  const name = req.params.compiler;
+  const lang = map[name];
+  if (lang) {
+    // parse content
+    const code = base64.decode(req.body.code);
+    const input = base64.decode(req.body.input);
+    const expected = base64.decode(req.body.expected);
+
+    // run test code
+    lang
+      .test(code, input, expected)
+      .then((result) => res.status(200).json({ result }))
+      .catch((error) => res.status(400).json({ error }));
+  } else next();
+});
 
 module.exports = router;

@@ -4,15 +4,12 @@ const fs = require('fs');
 
 const path = require('path');
 
-const { v4: uuid } = require('uuid');
+const { udir } = require('../utils');
 
 const name = 'gcc';
 
 async function compile(code) {
-  const folder = path.join(process.env.PWD, 'runners', uuid());
-  fs.promises.mkdir(folder, {
-    recursive: true,
-  });
+  const folder = udir();
   const iPath = path.join(folder, 'app.c');
   const oPath = path.join(folder, 'app.out');
 
