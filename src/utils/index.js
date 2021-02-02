@@ -6,11 +6,10 @@ const { v4: uuid } = require('uuid');
 /**
  * Create an unique directory using uuid as directory's name
  */
-async function udir() {
-  const folder = path.join(process.env.PWD, 'runners', uuid());
-  await fs.promises.mkdir(folder, {
-    recursive: true,
-  });
+async function udir({ prefix }) {
+  const _prefix = prefix || '';
+  const folder = path.join(process.env.PWD, 'runners', `${_prefix}-${uuid()}`);
+  await fs.promises.mkdir(folder, { recursive: true });
   return folder;
 }
 

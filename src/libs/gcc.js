@@ -9,7 +9,9 @@ const { udir } = require('../utils');
 const name = 'gcc';
 
 async function compile(code) {
-  const folder = udir();
+  const folder = await udir({
+    prefix: 'c',
+  });
   const iPath = path.join(folder, 'app.c');
   const oPath = path.join(folder, 'app.out');
 

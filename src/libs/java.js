@@ -9,16 +9,19 @@ const { udir } = require('../utils');
 const name = 'java';
 
 async function compile(code) {
-  const folder = udir();
-  const file = path.join(folder, 'app.java');
+  const folder = await udir({ prefix: 'java' });
+  const file = path.join(folder, 'Program.java');
 
   await fs.promises.writeFile(file, code);
-  shell.exec(`javac ${file}`);
+  await shell.exec(`javac ${file}`);
   return file.replace('.java', '');
 }
 
 async function run(filePath, input, expected) {
-  const cmd = `echo '${input}' | ${filePath}`;
+  const dir = path.dirname(filePath);
+  const file = path.basename(filePath);
+
+  const cmd = `echo '${input}' | java -classpath ${dir} ${file}`;
   const { stdout } = await shell.exec(cmd);
   const passed = stdout === expected;
   return {
@@ -34,7 +37,8 @@ async function test(code, input, expected) {
 }
 
 async function version() {
-  return shell.exec('gcc --version').then((result) => result.stdout);
+  const { stderr } = await shell.exec('java -version');
+  return stderr;
 }
 
 module.exports = {

@@ -12,7 +12,7 @@ const name = 'javascript';
  * this function does not compile code, just create a file to store it
  */
 async function compile(code) {
-  const folder = udir();
+  const folder = await udir({ prefix: 'js' });
   const file = path.join(folder, 'app.js');
 
   await fs.promises.writeFile(file, code);
