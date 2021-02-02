@@ -37,7 +37,7 @@ async function version() {
   return shell.exec('gcc --version').then((result) => result.stdout);
 }
 
-exports.compiler = {
+module.exports = {
   name,
   version,
   test,

@@ -6,21 +6,19 @@ const path = require('path');
 
 const { udir } = require('../utils');
 
-const name = 'javascript';
+const name = 'java';
 
-/**
- * this function does not compile code, just create a file to store it
- */
 async function compile(code) {
   const folder = udir();
-  const file = path.join(folder, 'app.js');
+  const file = path.join(folder, 'app.java');
 
   await fs.promises.writeFile(file, code);
-  return file;
+  shell.exec(`javac ${file}`);
+  return file.replace('.java', '');
 }
 
 async function run(filePath, input, expected) {
-  const cmd = `echo '${input}' | node ${filePath}`;
+  const cmd = `echo '${input}' | ${filePath}`;
   const { stdout } = await shell.exec(cmd);
   const passed = stdout === expected;
   return {
@@ -36,7 +34,7 @@ async function test(code, input, expected) {
 }
 
 async function version() {
-  return shell.exec('node -v').then((result) => result.stdout);
+  return shell.exec('gcc --version').then((result) => result.stdout);
 }
 
 module.exports = {

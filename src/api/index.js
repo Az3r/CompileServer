@@ -9,6 +9,7 @@ const { compilers } = require('../libs');
 const map = {
   c: compilers.gcc,
   js: compilers.javascript,
+  java: compilers.java,
 };
 
 router.get('/', (req, res) => {
