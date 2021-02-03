@@ -10,6 +10,7 @@ const map = {
   c: compilers.gcc,
   js: compilers.javascript,
   java: compilers.java,
+  csharp: compilers.dotnet,
 };
 
 router.get('/', (req, res) => {
