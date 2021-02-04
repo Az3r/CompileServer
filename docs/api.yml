@@ -1,0 +1,115 @@
+openapi: '3.0.2'
+info:
+  title: API for compile server
+  description: |
+    GET request return the version of given compiler (interpreter), 
+    POST request requires an UUID of user from Firebase Authentication
+  version: '1.0'
+servers:
+  - url: https://online-code-exercise.herokuapp.com
+
+paths:
+  /java:
+    get:
+      responses:
+        '200':
+          description: Return the output of command 'java -version',
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: |
+                      openjdk version "11.0.9.1" 2020-11-04
+                      OpenJDK Runtime Environment (build 11.0.9.1+1-Ubuntu-0ubuntu1.20.04)
+                      OpenJDK 64-Bit Server VM (build 11.0.9.1+1-Ubuntu-0ubuntu1.20.04, mixed mode, sharing) , 
+        '500':
+          description: Unexpected Error
+    post:
+      summary: Test code with given input and expected output
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        description: Every field must ben base64 encoded
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: The code to test
+                  example: cHVibGljIGNsYXNzIFByb2dyYW0gewoKICAgIHB1YmxpYyBzdGF0aWMgdm9pZCBtYWluKFN0cmluZ1tdIGFyZ3MpIHsKICAgICAgICBpbnQgZmlyc3QgPSAxMDsKICAgICAgICBpbnQgc2Vjb25kID0gMjA7CgogICAgICAgIFN5c3RlbS5vdXQucHJpbnRsbigiRW50ZXIgdHdvIG51bWJlcnM6ICIgKyBmaXJzdCArICIgIiArIHNlY29uZCk7CiAgICAgICAgaW50IHN1bSA9IGZpcnN0ICsgc2Vjb25kOwoKICAgICAgICBTeXN0ZW0ub3V0LnByaW50bG4oIlRoZSBzdW0gaXM6ICIgKyBzdW0pOwogICAgfQp9Cg==,
+                input:
+                  type: string
+                  description: test cases passed to stdin stream
+                  example: NQoxIDIgMwo0NTYgNjU3IDc4
+                expected:
+                  type: string
+                  description: expected output from the test
+                  example: MQoyCjMKNAo1CjY=
+      responses:
+        '200':
+          description: |
+            The result of the test, if the test had no syntax error or failed to compile.
+            Use string comparison between output and expected to determine whether the test passed or failed,
+            (Good for now, but need better solution).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    properties:
+                      passed:
+                        type: boolean
+                        description: whether the test is passed or not
+                      output:
+                        type: string
+                        description: The console's output to which the test wrote
+                        example: |
+                          1
+                          2
+                          3
+                      input:
+                        type: string
+                        description: test cases
+                        example: |
+                          5
+                          1 2 3 4
+                      expected:
+                        type: string
+                        description: The expected output
+                        example: 1 2 3
+        '500':
+          description: The test failed to compile or had syntax error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    properties:
+                      name:
+                        type: string
+                        description: an error type, which is usually a shell error
+                        example: ChildProcessError
+                      code:
+                        type: integer
+                        description: |
+                          Exit code, [see this Stackoverflow answer](https://unix.stackexchange.com/a/254747)
+                        example: 1
+                      childProcess:
+                        type: object
+                        description: this object is not used
+                        example: {}
+                      stdout:
+                        type: string
+                        description: output written to stdout stream, always an empty string
+                        example: ""
+                      stderr:
+                        type: string
+                        description: error message written to stderr stream
