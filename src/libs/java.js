@@ -19,12 +19,14 @@ async function compile(code) {
 
 async function execute(cmd, input, expected) {
   const { stdout: actual } = await shell.exec(cmd);
-  const passed = expected.trim() === actual.trim();
+  const _expected = expected.trim();
+  const _actual = actual.trim();
+  const passed = _expected.trim() === _actual.trim();
   return {
     passed,
     input,
-    expected,
-    actual: passed ? undefined : actual,
+    expected: _expected,
+    actual: passed ? undefined : _actual,
   };
 }
 
@@ -42,17 +44,17 @@ async function run(filePath, testcases) {
   const results = await Promise.all(tasks);
   const total = results.length;
   let totalPassed = 0;
-  const failedPosition = [];
+  const failedIndexes = [];
   results.forEach((result, index) => {
     if (result.passed) totalPassed += 1;
-    else failedPosition.push(index);
+    else failedIndexes.push(index);
   });
   return {
     total,
     passed: totalPassed,
     failed: total - totalPassed,
-    failedIndices: failedPosition,
-    testcases,
+    failedIndexes,
+    results,
   };
 }
 
