@@ -30,10 +30,7 @@ paths:
         required: true
       responses:
         "200":
-          description: |
-            The result of the test, if the test had no syntax error or failed to compile.
-            Use string comparison between output and expected to determine whether the test passed or failed,
-            (Good for now, but need better solution).
+          description: Code was compiled or run successfully
           content:
             application/json:
               schema:
@@ -48,11 +45,51 @@ paths:
       - BearerAuth: []
 components:
   schemas:
+    inline_response_200_1_results:
+      type: object
+      properties:
+        passed:
+          type: boolean
+          description: whether the test is passed or not
+          example: true
+        input:
+          type: string
+          description: The content passed into stdin stream
+          example: 1 2
+        expected:
+          type: string
+          description: The expected output
+          example: "3"
+        actual:
+          type: string
+          description: The content which program wrote to stdout stream
+          example: "3"
     inline_response_200_1:
       type: object
       properties:
-        result:
-          $ref: '#/components/schemas/inline_response_200_1_result'
+        total:
+          type: number
+          description: The total number of test cases
+          example: 10
+        passed:
+          type: number
+          description: The number of tests passed
+          example: 6
+        failed:
+          type: number
+          description: The number of tests failed
+          example: 4
+        failedIndexes:
+          type: array
+          description: The positions of failed tests
+          items:
+            type: number
+        results:
+          type: array
+          description: The result of each test
+          items:
+            $ref: '#/components/schemas/inline_response_200_1_results'
+      description: The result of the test
     inline_response_500_error:
       properties:
         name:
@@ -83,28 +120,17 @@ components:
           example: "openjdk version \"11.0.9.1\" 2020-11-04\nOpenJDK Runtime Environment\
             \ (build 11.0.9.1+1-Ubuntu-0ubuntu1.20.04)\nOpenJDK 64-Bit Server VM (build\
             \ 11.0.9.1+1-Ubuntu-0ubuntu1.20.04, mixed mode, sharing) , \n"
-    inline_response_200_1_result:
+    java_testcases:
+      type: object
       properties:
-        passed:
-          type: boolean
-          description: whether the test is passed or not
-        output:
-          type: string
-          description: The console's output to which the test wrote
-          example: |
-            1
-            2
-            3
         input:
           type: string
-          description: test cases
-          example: |
-            5
-            1 2 3 4
-        expected:
+          description: The content to pass into stdin stream
+          example: 1 2
+        output:
           type: string
-          description: The expected output
-          example: 1 2 3
+          description: The content expected to be written to stdout stream
+          example: "3"
     body:
       type: object
       properties:
@@ -116,12 +142,10 @@ components:
             b=reader.nextInt();System.out.println(a+b);reader.close();}},
         testcases:
           type: array
-          description: test cases passed to stdin stream
-          example: NQoxIDIgMwo0NTYgNjU3IDc4
-        expected:
-          type: string
-          description: expected output from the test
-          example: MQoyCjMKNAo1CjY=
+          description: Contains serveral test cases which will be used to test the
+            given code
+          items:
+            $ref: '#/components/schemas/java_testcases'
     inline_response_500:
       type: object
       properties:
