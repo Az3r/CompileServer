@@ -1,0 +1,133 @@
+openapi: 3.0.2
+info:
+  title: API for compile server
+  description: "GET request return the version of given compiler (interpreter), \n\
+    POST request requires an UUID of user from Firebase Authentication\n"
+  version: 1.0.0-oas3
+servers:
+- url: https://online-code-exercise.herokuapp.com
+paths:
+  /java:
+    summary: Access to java compiler
+    get:
+      summary: return java and javac version
+      responses:
+        "200":
+          description: Return the output of command 'java -version',
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+        "500":
+          description: Unexpected Error
+    post:
+      summary: Test code with given input and expected output
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/body'
+        required: true
+      responses:
+        "200":
+          description: |
+            The result of the test, if the test had no syntax error or failed to compile.
+            Use string comparison between output and expected to determine whether the test passed or failed,
+            (Good for now, but need better solution).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_1'
+        "500":
+          description: The test failed to compile or had syntax error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+      security:
+      - BearerAuth: []
+components:
+  schemas:
+    inline_response_200_1:
+      type: object
+      properties:
+        result:
+          $ref: '#/components/schemas/inline_response_200_1_result'
+    inline_response_500_error:
+      properties:
+        name:
+          type: string
+          description: an error type, which is usually a shell error
+          example: ChildProcessError
+        code:
+          type: integer
+          description: |
+            Exit code, [see this Stackoverflow answer](https://unix.stackexchange.com/a/254747)
+          example: 1
+        childProcess:
+          type: object
+          description: this object is not used
+          example: {}
+        stdout:
+          type: string
+          description: output written to stdout stream, always an empty string
+          example: ""
+        stderr:
+          type: string
+          description: error message written to stderr stream
+    inline_response_200:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "openjdk version \"11.0.9.1\" 2020-11-04\nOpenJDK Runtime Environment\
+            \ (build 11.0.9.1+1-Ubuntu-0ubuntu1.20.04)\nOpenJDK 64-Bit Server VM (build\
+            \ 11.0.9.1+1-Ubuntu-0ubuntu1.20.04, mixed mode, sharing) , \n"
+    inline_response_200_1_result:
+      properties:
+        passed:
+          type: boolean
+          description: whether the test is passed or not
+        output:
+          type: string
+          description: The console's output to which the test wrote
+          example: |
+            1
+            2
+            3
+        input:
+          type: string
+          description: test cases
+          example: |
+            5
+            1 2 3 4
+        expected:
+          type: string
+          description: The expected output
+          example: 1 2 3
+    body:
+      type: object
+      properties:
+        code:
+          type: string
+          description: The code to test
+          example: import java.util.Scanner;public class Program{public static void
+            main(String[]args){Scanner reader=new Scanner(System.in);int a=reader.nextInt();int
+            b=reader.nextInt();System.out.println(a+b);reader.close();}},
+        testcases:
+          type: array
+          description: test cases passed to stdin stream
+          example: NQoxIDIgMwo0NTYgNjU3IDc4
+        expected:
+          type: string
+          description: expected output from the test
+          example: MQoyCjMKNAo1CjY=
+    inline_response_500:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/inline_response_500_error'
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
