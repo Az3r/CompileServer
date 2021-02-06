@@ -16,12 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 app.post('*', (req, res, next) => {
-  // check authorization header
-  if (process.env.NODE_ENV === 'production' && !req.headers.authorization) {
-    res.status(401).json({
-      error: 'Unauthorized request',
-    });
-  } else next();
+  next();
 });
 
 app.use('/', api);
