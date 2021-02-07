@@ -1,2 +1,5 @@
-.git/*
-.github/*
+.git
+.github
+.docs
+*.env
+node_modules

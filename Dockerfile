@@ -11,10 +11,7 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 # install essential tools
 RUN apt-get update
-RUN apt-get -y install apt-utils curl software-properties-common
-
-# install gcc and g++ compilers
-RUN apt-get -y install build-essential
+RUN apt-get -y install apt-utils curl software-properties-common build-essential
 
 # install nodejs using nvm
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | bash \

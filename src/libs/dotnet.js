@@ -12,16 +12,17 @@ async function compile(code) {
   const folder = await udir({
     prefix: name,
   });
+  const project = path.join(folder, 'App');
 
   // create a dotnet project
-  await shell.exec(`dotnet new console -o ${folder}`);
+  await shell.exec(`dotnet new console -o ${project}`);
 
-  const iPath = path.join(folder, 'Program.cs');
-  const oPath = path.join(folder, 'bin', `${folder}.dll`);
+  const iPath = path.join(project, 'Program.cs');
+  const oPath = path.join(project, 'bin', 'App.dll');
 
   await fs.promises.writeFile(iPath, code);
   return shell
-    .exec(`dotnet build ${folder} -o ./${folder}/bin`)
+    .exec(`dotnet build ${project} -o ${path.dirname(oPath)}`)
     .then(() => oPath);
 }
 
