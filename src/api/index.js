@@ -9,6 +9,7 @@ const map = {
   js: compilers.javascript,
   java: compilers.java,
   csharp: compilers.dotnet,
+  py3: compilers.python3,
 };
 
 router.get('/', (req, res) => {

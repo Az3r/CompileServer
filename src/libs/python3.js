@@ -6,30 +6,21 @@ const path = require('path');
 
 const { udir, execute, analyze } = require('../utils');
 
-const name = 'c#';
+const name = 'python3';
 
 async function compile(code) {
-  const folder = await udir({
-    prefix: name,
-  });
+  const folder = await udir({ prefix: name });
+  const file = path.join(folder, 'main.py');
 
-  // create a dotnet project
-  await shell.exec(`dotnet new console -o ${folder}`);
-
-  const iPath = path.join(folder, 'Program.cs');
-  const oPath = path.join(folder, 'bin', `${folder}.dll`);
-
-  await fs.promises.writeFile(iPath, code);
-  return shell
-    .exec(`dotnet build ${folder} -o ./${folder}/bin`)
-    .then(() => oPath);
+  await fs.promises.writeFile(file, code);
+  return file;
 }
 
 async function run(filePath, testcases) {
   const tasks = [];
   for (let i = 0; i < testcases.length; i += 1) {
     const { input, output } = testcases[i];
-    const cmd = `echo '${input}' | dotnet ${filePath}`;
+    const cmd = `echo '${input}' | python3 ${filePath}`;
     tasks.push(execute(cmd, input, output));
   }
 
@@ -42,7 +33,8 @@ async function test(code, testcases) {
 }
 
 async function version() {
-  return shell.exec('dotnet --info').then((result) => result.stdout);
+  const { stdout } = await shell.exec('python3 --version');
+  return stdout;
 }
 
 module.exports = {

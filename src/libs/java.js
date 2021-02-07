@@ -4,30 +4,17 @@ const fs = require('fs');
 
 const path = require('path');
 
-const { udir } = require('../utils');
+const { udir, execute, analyze } = require('../utils');
 
 const name = 'java';
 
 async function compile(code) {
-  const folder = await udir({ prefix: 'java' });
+  const folder = await udir({ prefix: name });
   const file = path.join(folder, 'Program.java');
 
   await fs.promises.writeFile(file, code);
   await shell.exec(`javac ${file}`);
   return file.replace('.java', '');
-}
-
-async function execute(cmd, input, expected) {
-  const { stdout: actual } = await shell.exec(cmd);
-  const _expected = expected.trim();
-  const _actual = actual.trim();
-  const passed = _expected.trim() === _actual.trim();
-  return {
-    passed,
-    input,
-    expected: _expected,
-    actual: passed ? undefined : _actual,
-  };
 }
 
 async function run(filePath, testcases) {
@@ -42,20 +29,7 @@ async function run(filePath, testcases) {
   }
 
   const results = await Promise.all(tasks);
-  const total = results.length;
-  let totalPassed = 0;
-  const failedIndexes = [];
-  results.forEach((result, index) => {
-    if (result.passed) totalPassed += 1;
-    else failedIndexes.push(index);
-  });
-  return {
-    total,
-    passed: totalPassed,
-    failed: total - totalPassed,
-    failedIndexes,
-    results,
-  };
+  return analyze(results);
 }
 
 async function test(code, testcases) {
