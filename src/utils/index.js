@@ -50,7 +50,7 @@ function analyze(results) {
     total,
     passed: totalPassed,
     failed: total - totalPassed,
-    failedIndexes,
+    failedIndexes: failedIndexes.length !== 0 ? failedIndexes : undefined,
     results,
   };
 }
