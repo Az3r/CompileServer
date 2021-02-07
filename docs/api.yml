@@ -7,17 +7,156 @@ info:
 servers:
 - url: https://online-code-exercise.herokuapp.com
 paths:
+  /csharp:
+    summary: Access to C# compiler
+    get:
+      summary: Return output of command <pre>dotnet --info</pre>
+      responses:
+        "500":
+          description: Unexpected error
+        "200":
+          description: .NET CORE SDK info and its runetime enviroment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+    post:
+      summary: Test C# code
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestData'
+            example:
+              code: using System;namespace sample\n{class Program\n{static void Main(string[]args)\n{string
+                input=Console.ReadLine();string keyword=Console.ReadLine();Console.WriteLine(input.IndexOf(keyword));}}}
+              testcases:
+              - input: |-
+                  Hello
+                  e
+                ouput: "1"
+              - input: |-
+                  World
+                  @
+                output: -1
+        required: true
+      responses:
+        "200":
+          description: Code was compiled or run successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyzedData'
+              example:
+              - total: 2
+                passed: 1
+                failed: 1
+                failedIndexes:
+                - 0
+                results:
+                - passed: false
+                  input: |-
+                    Hello
+                    e
+                  expected: "1"
+                  actual: "2"
+                - passed: true
+                  input: |-
+                    World
+                    @
+                  expected: -1
+        "400":
+          description: The test failed to compile or had syntax error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShellError'
+      security:
+      - BearerAuth: []
+  /py3:
+    summary: Access to python3
+    get:
+      summary: return version of python3
+      responses:
+        "200":
+          description: Return output of command <pre>python3 --version</pre>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_1'
+        "500":
+          description: Unexpected error
+    post:
+      summary: Test python code
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestData'
+            example:
+              code: line1 = input()\nline2 = input()\nprint(line1)\nprint(line2)
+              testcases:
+              - input: |-
+                  a
+                  b
+                ouput: |-
+                  a
+                  b
+              - input: |-
+                  a
+
+                  b
+              - output: |
+                  a
+        required: true
+      responses:
+        "400":
+          description: Code failed to run
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShellError'
+        "200":
+          description: Code run successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyzedData'
+              example:
+                total: 2
+                passed: 1
+                failed: 1
+                failedIndexes:
+                - 1
+                results:
+                - passed: true
+                  input: |-
+                    a
+                    b
+                  expected: |-
+                    a
+                    b
+                - passed: false
+                  input: |-
+                    a
+
+                    b
+                  expected: |
+                    a
+                  actual: a
+      security:
+      - BearerAuth: []
   /java:
     summary: Access to java compiler
     get:
       summary: return java and javac version
       responses:
         "200":
-          description: Return the output of command 'java -version',
+          description: Return the output of command <pre>java -version</pre>
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/inline_response_200'
+                $ref: '#/components/schemas/inline_response_200_2'
         "500":
           description: Unexpected Error
     post:
@@ -26,7 +165,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/body'
+              $ref: '#/components/schemas/TestData'
+            example:
+              code: import java.util.Scanner;public class Program{public static void
+                main(String[]args){Scanner reader=new Scanner(System.in);int a=reader.nextInt();int
+                b=reader.nextInt();System.out.println(a+b);reader.close();}}
+              testcases:
+              - input: 1 2
+                output: "3"
         required: true
       responses:
         "200":
@@ -34,63 +180,26 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/inline_response_200_1'
-        "500":
+                $ref: '#/components/schemas/AnalyzedData'
+              example:
+                total: 1
+                passed: 1
+                failed: 0
+                results:
+                - passed: true
+                  input: 1 2
+                  expected: "3"
+        "400":
           description: The test failed to compile or had syntax error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/inline_response_500'
+                $ref: '#/components/schemas/ShellError'
       security:
       - BearerAuth: []
 components:
   schemas:
-    inline_response_200_1_results:
-      type: object
-      properties:
-        passed:
-          type: boolean
-          description: whether the test is passed or not
-          example: true
-        input:
-          type: string
-          description: The content passed into stdin stream
-          example: 1 2
-        expected:
-          type: string
-          description: The expected output
-          example: "3"
-        actual:
-          type: string
-          description: The content which program wrote to stdout stream
-          example: "3"
-    inline_response_200_1:
-      type: object
-      properties:
-        total:
-          type: number
-          description: The total number of test cases
-          example: 10
-        passed:
-          type: number
-          description: The number of tests passed
-          example: 6
-        failed:
-          type: number
-          description: The number of tests failed
-          example: 4
-        failedIndexes:
-          type: array
-          description: The positions of failed tests
-          items:
-            type: number
-        results:
-          type: array
-          description: The result of each test
-          items:
-            $ref: '#/components/schemas/inline_response_200_1_results'
-      description: The result of the test
-    inline_response_500_error:
+    ShellError:
       properties:
         name:
           type: string
@@ -112,7 +221,99 @@ components:
         stderr:
           type: string
           description: error message written to stderr stream
+    TestData:
+      required:
+      - code
+      - testcases
+      properties:
+        code:
+          type: string
+          description: The code to test
+        testcases:
+          type: array
+          description: Contains serveral test cases which will be used to test the
+            given code
+          items:
+            $ref: '#/components/schemas/TestData_testcases'
+    TestResult:
+      required:
+      - expected
+      - input
+      - passed
+      properties:
+        passed:
+          type: boolean
+          description: whether the test is passed or not
+        input:
+          type: string
+          description: The content passed into stdin stream
+        expected:
+          type: string
+          description: The expected output
+        actual:
+          type: string
+          description: |
+            The content which program wrote to stdout stream,
+             must be present if the test failed
+    AnalyzedData:
+      required:
+      - failed
+      - passed
+      - results
+      - total
+      properties:
+        total:
+          type: integer
+          description: The total number of test cases
+        passed:
+          type: integer
+          description: The number of tests passed
+        failed:
+          type: integer
+          description: The number of tests failed
+        failedIndexes:
+          type: array
+          description: The positions of failed tests, must be present if there are
+            any failed tests
+          items:
+            type: integer
+        results:
+          type: array
+          description: The result of each test
+          items:
+            $ref: '#/components/schemas/TestResult'
     inline_response_200:
+      type: object
+      properties:
+        message:
+          type: string
+          example: |
+            .NET Core SDK (reflecting any global.json):\n
+             Version:   3.1.405\n
+              Commit:    65f9d75b1c\n\n
+              Runtime Environment:\n
+               OS Name:     debian\n
+                OS Version:  10\n
+                 OS Platform: Linux\n
+                  RID:         debian.10-x64\n
+                   Base Path:   /root/.dotnet/sdk/3.1.405/\n\n
+                   Host (useful for support):\n
+                     Version: 3.1.11\n
+                       Commit:  f5eceb8105\n\n
+                       .NET Core SDKs installed:\n
+                         3.1.405 [/root/.dotnet/sdk]\n\n
+                         .NET Core runtimes installed:\n
+                           Microsoft.AspNetCore.App 3.1.11 [/root/.dotnet/shared/Microsoft.AspNetCore.App]\n
+                             Microsoft.NETCore.App 3.1.11 [/root/.dotnet/shared/Microsoft.NETCore.App]\n\n
+                             To install additional .NET Core runtimes or SDKs:\n
+                               https://aka.ms/dotnet-download\n
+    inline_response_200_1:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Python 3.8.5
+    inline_response_200_2:
       type: object
       properties:
         message:
@@ -120,37 +321,18 @@ components:
           example: "openjdk version \"11.0.9.1\" 2020-11-04\nOpenJDK Runtime Environment\
             \ (build 11.0.9.1+1-Ubuntu-0ubuntu1.20.04)\nOpenJDK 64-Bit Server VM (build\
             \ 11.0.9.1+1-Ubuntu-0ubuntu1.20.04, mixed mode, sharing) , \n"
-    java_testcases:
+    TestData_testcases:
+      required:
+      - input
+      - ouput
       type: object
       properties:
         input:
           type: string
           description: The content to pass into stdin stream
-          example: 1 2
         output:
           type: string
           description: The content expected to be written to stdout stream
-          example: "3"
-    body:
-      type: object
-      properties:
-        code:
-          type: string
-          description: The code to test
-          example: import java.util.Scanner;public class Program{public static void
-            main(String[]args){Scanner reader=new Scanner(System.in);int a=reader.nextInt();int
-            b=reader.nextInt();System.out.println(a+b);reader.close();}},
-        testcases:
-          type: array
-          description: Contains serveral test cases which will be used to test the
-            given code
-          items:
-            $ref: '#/components/schemas/java_testcases'
-    inline_response_500:
-      type: object
-      properties:
-        error:
-          $ref: '#/components/schemas/inline_response_500_error'
   securitySchemes:
     BearerAuth:
       type: http
