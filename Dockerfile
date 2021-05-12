@@ -45,7 +45,7 @@ RUN npm run build
 # Bundle app source
 COPY . .
 
-CMD npm start
+CMD ["npm", "start"]
 
 
 
