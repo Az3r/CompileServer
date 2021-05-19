@@ -22,11 +22,13 @@ async function udir({ prefix }) {
  * @param {*} expected the content expected to be written to stdout stream
  */
 async function execute(cmd, input, expected) {
+  const now = Date.now();
   const { stdout: actual } = await shell.exec(cmd);
   const _expected = expected.trim();
   const _actual = actual.trim();
   const passed = _expected.trim() === _actual.trim();
   return {
+    elapsedTime: Date.now() - now,
     passed,
     input: input.trim(),
     expected: _expected,
@@ -41,8 +43,10 @@ async function execute(cmd, input, expected) {
 function analyze(results) {
   const total = results.length;
   let totalPassed = 0;
+  let totalElapsedTime = 0;
   const failedIndexes = [];
   results.forEach((result, index) => {
+    totalElapsedTime += result.elapsedTime;
     if (result.passed) totalPassed += 1;
     else failedIndexes.push(index);
   });
@@ -51,6 +55,7 @@ function analyze(results) {
     passed: totalPassed,
     failed: total - totalPassed,
     failedIndexes: failedIndexes.length !== 0 ? failedIndexes : undefined,
+    totalElapsedTime,
     results,
   };
 }
