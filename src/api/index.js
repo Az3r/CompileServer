@@ -38,7 +38,10 @@ router.post('/:compiler', async (req, res, next) => {
     lang
       .test(code, testcases)
       .then((result) => res.status(200).json(result))
-      .catch((error) => res.status(400).json(error));
+      .catch((error) => {
+        if (error.code === 137) error.stdout = 'timeout 3s';
+        return res.status(400).json(error);
+      });
   } else next();
 });
 

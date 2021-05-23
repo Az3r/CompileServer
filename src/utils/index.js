@@ -23,7 +23,9 @@ async function udir({ prefix }) {
  */
 async function execute(cmd, input, expected) {
   const now = Date.now();
-  const { stdout: actual } = await shell.exec(cmd);
+  const { stdout: actual } = await shell.exec(
+    `timeout -s 9 3 bash -c "${cmd}"`
+  );
   const _expected = expected.trim();
   const _actual = actual.trim();
   const passed = _expected.trim() === _actual.trim();
